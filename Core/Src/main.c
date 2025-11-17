@@ -137,6 +137,7 @@ int main(void)
       //     OLED_ShowString(1, 17, "OK", OLED_8X16);
       //     OLED_Update();
       // }
+      //TEST
       SPI_Slave_TryGet4U8(&spi1_ctx, &d0, &d1, &d2, &d3);
       OLED_ShowNum(1, 1, d0, 3, OLED_8X16);
       OLED_ShowNum(1, 17, d1, 3, OLED_8X16);
