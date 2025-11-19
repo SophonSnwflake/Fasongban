@@ -30,12 +30,16 @@
 #include "changecaculate.h"
 #include "pwm6.h"
 #include "motor.h"
-uint8_t d0=0, d1, d2, d3;//SPI1收到的数据
+#include "chassis.h"
+#include "robot_config.h"
+#include "rc_process.h"
+uint8_t d0 = 0, d1 = 0, d2 = 0, d3 = 0; // 由 SPI1 更新
+uint8_t d4 = 0, d5 = 0;  // 由 ICX_GetDuty(&ic3/4) 更新
 uint8_t k0 = 0, k1, k2, k3;//SPI2收到的数据
 ICX_Handle  ic3, ic4;
 SPI_SlaveCtx spi1_ctx, spi2_ctx;
-int16_t AngleSpeedOfReel_Origianl0, AngleSpeedOfReel_Origianl1, AngleSpeedOfReel_Origianl2, AngleSpeedOfReel_Origianl3;
-int16_t RealReelSpeed0, RealReelSpeed1, RealReelSpeed2, RealReelSpeed3;
+//int16_t AngleSpeedOfReel_Origianl0, AngleSpeedOfReel_Origianl1, AngleSpeedOfReel_Origianl2, AngleSpeedOfReel_Origianl3;
+//int16_t RealReelSpeed0, RealReelSpeed1, RealReelSpeed2, RealReelSpeed3;
 const uint32_t TICK_HZ = 1000000UL;
 /* USER CODE END Includes */
 
@@ -118,8 +122,8 @@ int main(void)
   ICX_Attach(&ic4, &htim4, TIM_CHANNEL_1, TICK_HZ);
   ICX_Start(&ic4);
 
-  Motor_SetPWM(4, 50);
- 
+  Chassis_PID_Init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -130,7 +134,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     
-    PWM6_SetDutyPercent(6, 5.8);
+    /*PWM6_SetDutyPercent(6, 5.8);
       // if (SPI_Slave_TryGet4U8(&d0, &d1, &d2, &d3)) {
       //     // 收到一帧新的 4 个字节，放在 d0..d3
       //     OLED_ShowString(1, 17, "OK", OLED_8X16);
@@ -149,12 +153,29 @@ int main(void)
       OLED_ShowNum(30, 17, Duty4, 5, OLED_8X16);
 
       SPI_Slave_TryGet4U8(&spi2_ctx, &k0, &k1, &k2, &k3);
-      RealReelSpeed3 = caculateWheelSpeed(1, k3, 1);
+      //RealReelSpeed3 = caculateWheelSpeed(1, k3, 1);
 
       // OLED_ShowSignedNum(30, 1, RealReelSpeed3, 4, OLED_8X16);
-      OLED_Update();
+      OLED_Update();*/
 
+    //更新SPI1遥控器4通道
+    SPI_Slave_TryGet4U8(&spi1_ctx, &d0, &d1, &d2, &d3);
     
+    // 更新开关量 d4, d5
+    d4 = ICX_GetDuty(&ic3);
+    d5 = ICX_GetDuty(&ic4);
+
+    // 运行你的底盘控制逻辑
+    Chassis_ControlLoop();
+
+    //  OLED 调试显示  !!!OLED显示频繁会影响控制周期，若调试出现问题请注释掉!!!
+    OLED_ShowNum(1, 1, d0, 3, OLED_8X16);
+    OLED_ShowNum(1, 17, d1, 3, OLED_8X16);
+    OLED_ShowNum(1, 33, d2, 3, OLED_8X16);
+    OLED_ShowNum(1, 49, d3, 3, OLED_8X16);
+    OLED_Update();
+
+    HAL_Delay(5); // 5ms 控制周期（200Hz）
   }
   /* USER CODE END 3 */
 }

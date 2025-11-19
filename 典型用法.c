@@ -3,7 +3,7 @@ Motor_SetPWM(1, 10);
 Motor_SetPWM(2, 10);
 Motor_SetPWM(3, 10);
 Motor_SetPWM(4, 10);
-//第二个变量范围0-100，为占空比
+//第二个变量范围-100~100，为占空比（正负表示方向）
 
 
 //读取轮速
