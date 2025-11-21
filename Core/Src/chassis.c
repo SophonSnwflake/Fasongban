@@ -9,8 +9,8 @@
 extern SPI_SlaveCtx spi2_ctx;
 
 // 全局缓存数组
-static float wheel_target[4];
-static float wheel_speed[4];
+float wheel_target[4];
+float wheel_speed[4];
 
 /**
  * @brief 麦克纳姆轮运动学计算（将底盘速度转换为四轮速度）
