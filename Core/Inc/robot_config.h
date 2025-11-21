@@ -101,9 +101,9 @@
  */
 #define MOTOR_PWM_MAX 100.0f
 
-/******************* 6. 编码器速度比例因子 **********************/
+/******************* 6. 编码器速度比例因子 **********************/ //1.39008526f/500 
 
-#define ENCODER_MUTIPLE 1.39008526f // 编码器速度比例因子（0.22123894*2*pi）
+#define ENCODER_MUTIPLE 0// 编码器速度比例因子（0.22123894*2*pi）16.5
 
 /******************* 7. 底盘最大线速度（mm/s） **********************/
 #define CHASSIS_VX_MAX 800.0f
@@ -113,6 +113,6 @@
 #define CHASSIS_OMEGA_MAX 180.0f
 
 /******************* 9. 云台 pitch 最大角速度（deg/s，先给个温和值，后期你可以调） **********************/
-#define GIMBAL_PITCH_SPEED_MAX 60.0f
+#define GIMBAL_PITCH_SPEED_MAX 90.0f
 
 #endif

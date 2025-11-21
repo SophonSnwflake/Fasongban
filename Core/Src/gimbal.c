@@ -1,6 +1,7 @@
 #include "gimbal.h"
 #include "rc_process.h"
 #include "pwm6.h"
+#include "OLED.h"
 
 // ---------------- SG90 标准参数 ----------------
 #define SG90_DUTY_MIN 5.0f  // 0°
@@ -14,8 +15,8 @@
 // 可根据实际机械结构修改
 #define YAW_MIN_ANGLE 0.0f
 #define YAW_MAX_ANGLE 180.0f
-#define PIT_MIN_ANGLE 10.0f  // 防止往下撞结构
-#define PIT_MAX_ANGLE 70.0f // 防止往上撞
+#define PIT_MIN_ANGLE 0.0f  // 防止往下撞结构
+#define PIT_MAX_ANGLE 100.0f // 防止往上撞
 
 // ---------------- 当前云台角度 ----------------
 static float yaw_angle = 90.0f; // 中位
@@ -26,7 +27,7 @@ static float pit_angle = 90.0f; // 中位,可根据情况改为水平位置角�
 //--------------------------------------------------
 static float angle_to_duty(float ang)
 {
-    return SG90_DUTY_MIN + (ang / 180.0f) * SG90_RANGE_DUTY;
+    return 7.5 + (ang / 180.0f) * 5.0f;
 }
 
 void Gimbal_Init(void)
@@ -53,7 +54,8 @@ void Gimbal_ControlLoop(void)
         yaw_angle = YAW_MAX_ANGLE;
 
     // 2) PITCH：使用 rc.pitch_speed
-    pit_angle += rc.pitch_speed * 0.05f;
+    pit_angle = rc.pitch_speed ;
+    OLED_ShowSignedNum(1, 41, (int)pit_angle, 4, OLED_6X8);
     if (pit_angle < PIT_MIN_ANGLE)
         pit_angle = PIT_MIN_ANGLE;
     if (pit_angle > PIT_MAX_ANGLE)

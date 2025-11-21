@@ -130,7 +130,9 @@ int main(void)
   Chassis_PID_Init();
 
   Gimbal_Init();
+Motor_SetPWM(5, 10);
 
+   Motor_SetPWM(6, 9);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -141,8 +143,8 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     
-   
-    //更新SPI1遥控器4通道
+
+    // 更新SPI1遥控器4通道
     SPI_Slave_TryGet4U8(&spi1_ctx, &d0, &d1, &d2, &d3);
     
     // 更新开关量 d4, d5
@@ -152,27 +154,28 @@ int main(void)
     // 运行你的底盘控制逻辑
     Chassis_ControlLoop();
     // 运行云台控制逻辑
-    Gimbal_ControlLoop();
+    // Gimbal_ControlLoop();
 
     //  OLED 调试显示  !!!OLED显示频繁会影响控制周期，若调试出现问题请注释掉!!!
     
-    OLED_ShowString(1,1,"Tar:",OLED_6X8);
-    OLED_ShowSignedNum(1, 9, wheel_target[0], 4, OLED_6X8);
-    OLED_ShowSignedNum(1, 17, wheel_target[1], 4, OLED_6X8);
-    OLED_ShowSignedNum(1, 25, wheel_target[2], 4, OLED_6X8);
-    OLED_ShowSignedNum(1, 33, wheel_target[3], 4, OLED_6X8);
+    // OLED_ShowString(1,1,"Tar:",OLED_6X8);
+    // OLED_ShowSignedNum(1, 9, (int)wheel_target[0], 20, OLED_6X8);
+    // OLED_ShowSignedNum(1, 17, (int)wheel_target[1], 20, OLED_6X8);
+    // OLED_ShowSignedNum(1, 25, (int)wheel_target[2], 20, OLED_6X8);
+    // OLED_ShowSignedNum(1, 33, (int)wheel_target[3], 20, OLED_6X8);
+    
+    // OLED_ShowString(35,1,"Spe:",OLED_6X8);
+    // OLED_ShowSignedNum(35, 9, wheel_speed[0], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 17, wheel_speed[1], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 25, wheel_speed[2], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 33, wheel_speed[3], 4, OLED_6X8);
+    // OLED_Update();
+    // OLED_ShowString(70,1,"vxvy:",OLED_6X8);
+    // OLED_ShowSignedNum(70, 9, (int)rc.vx, 4, OLED_6X8);
+    // OLED_ShowSignedNum(70, 17, (int)rc.vy, 4, OLED_6X8);
+    // OLED_ShowSignedNum(70, 25, (int)rc.omega, 4, OLED_6X8);
 
-    OLED_ShowString(35,1,"Spe:",OLED_6X8);
-    OLED_ShowSignedNum(35, 9, wheel_speed[0], 4, OLED_6X8);
-    OLED_ShowSignedNum(35, 17, wheel_speed[1], 4, OLED_6X8);
-    OLED_ShowSignedNum(35, 25, wheel_speed[2], 4, OLED_6X8);
-    OLED_ShowSignedNum(35, 33, wheel_speed[3], 4, OLED_6X8);
-
-    OLED_ShowString(70,1,"vxvy:",OLED_6X8);
-    OLED_ShowSignedNum(70, 9, (int)rc.vx, 4, OLED_6X8);
-    OLED_ShowSignedNum(70, 17, (int)rc.vy, 4, OLED_6X8);
-
-    OLED_Update();
+    
     
     HAL_Delay(5); // 5ms 控制周期（200Hz）
   }
