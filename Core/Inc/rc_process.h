@@ -15,6 +15,7 @@ typedef struct
     float pitch_speed;  // 云台 pitch 角速度 (deg/s)
 
     uint8_t mode;       // 0: 行进模式  1: 打靶模式
+    uint8_t fire_switch;// 开火开关
 } RC_Ctrl_t;
 
 // 声明一个全局遥控控制量

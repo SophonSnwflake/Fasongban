@@ -13,9 +13,9 @@
 
 // ---------------- 云台限制角度 ----------------
 // 可根据实际机械结构修改
-#define YAW_MIN_ANGLE 0.0f
+#define YAW_MIN_ANGLE -180.0f
 #define YAW_MAX_ANGLE 180.0f
-#define PIT_MIN_ANGLE 0.0f  // 防止往下撞结构
+#define PIT_MIN_ANGLE -100.0f  // 防止往下撞结构
 #define PIT_MAX_ANGLE 100.0f // 防止往上撞
 
 // ---------------- 当前云台角度 ----------------
@@ -27,7 +27,7 @@ static float pit_angle = 90.0f; // 中位,可根据情况改为水平位置角�
 //--------------------------------------------------
 static float angle_to_duty(float ang)
 {
-    return 7.5 + (ang / 180.0f) * 5.0f;
+    return 7.5 + (ang / 180.0f) * 10.0f;
 }
 
 void Gimbal_Init(void)
@@ -47,11 +47,15 @@ void Gimbal_ControlLoop(void)
     extern RC_Ctrl_t rc;
 
     // 1) YAW：由遥控器 d0 控制 rc.omega（映射在 rc_process）
-    yaw_angle += rc.omega * 0.05f; // 云台移动速度（每周期 5ms）
+    yaw_angle += rc.omega/3; // 云台移动速度（每周期 5ms）
+    
     if (yaw_angle < YAW_MIN_ANGLE)
         yaw_angle = YAW_MIN_ANGLE;
     if (yaw_angle > YAW_MAX_ANGLE)
         yaw_angle = YAW_MAX_ANGLE;
+    
+
+    OLED_ShowSignedNum(35, 18, (int)yaw_angle, 4, OLED_6X8);
 
     // 2) PITCH：使用 rc.pitch_speed
     pit_angle = rc.pitch_speed ;
@@ -62,6 +66,13 @@ void Gimbal_ControlLoop(void)
         pit_angle = PIT_MAX_ANGLE;
 
     // 3) 输出到舵机
+    OLED_ShowSignedNum(35, 1, pit_angle, 4, OLED_6X8);
+    OLED_Update();
+    
+    
+
     PWM6_SetDutyPercent(5, angle_to_duty(yaw_angle));
     PWM6_SetDutyPercent(6, angle_to_duty(pit_angle));
+    OLED_ShowFloatNum(35, 10, angle_to_duty(pit_angle),2, 4, OLED_6X8 );
+    OLED_Update();
 }

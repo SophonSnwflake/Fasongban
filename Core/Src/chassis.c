@@ -143,12 +143,12 @@ uint8_t GetWheelSpeed_FromSPI(SPI_SlaveCtx *ctx, float speed_out[4])
     speed_out[2] = caculateWheelSpeed(WHEEL_RADIUS_MM, k2, ENCODER_MUTIPLE); // BR
     speed_out[3] = caculateWheelSpeed(WHEEL_RADIUS_MM, k3, ENCODER_MUTIPLE); // FR
 
-    OLED_ShowString(35, 1, "Spe:", OLED_6X8);
-    OLED_ShowSignedNum(35, 9, wheel_speed[0], 4, OLED_6X8);
-    OLED_ShowSignedNum(35, 17, wheel_speed[1], 4, OLED_6X8);
-    OLED_ShowSignedNum(35, 25, wheel_speed[2], 4, OLED_6X8);
-    OLED_ShowSignedNum(35, 33, wheel_speed[3], 4, OLED_6X8);
-    OLED_Update();
+    // OLED_ShowString(35, 1, "Spe:", OLED_6X8);
+    // OLED_ShowSignedNum(35, 9, wheel_speed[0], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 17, wheel_speed[1], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 25, wheel_speed[2], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 33, wheel_speed[3], 4, OLED_6X8);
+    // OLED_Update();
 
     return 1;
 }

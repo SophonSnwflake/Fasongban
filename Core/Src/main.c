@@ -34,6 +34,7 @@
 #include "robot_config.h"
 #include "rc_process.h"
 #include "gimbal.h"
+#include "fire.h"
 uint8_t d0 = 0, d1 = 0, d2 = 0, d3 = 0; // 由 SPI1 更新
 uint8_t d4 = 0, d5 = 0;  // 由 ICX_GetDuty(&ic3/4) 更新
 uint8_t k0 = 0, k1, k2, k3;//SPI2收到的数据
@@ -128,11 +129,11 @@ int main(void)
   ICX_Start(&ic4);
 
   Chassis_PID_Init();
+  Fire_Init();
 
   Gimbal_Init();
-Motor_SetPWM(5, 10);
-
-   Motor_SetPWM(6, 9);
+  // PWM6_SetDutyPercent(5, 5); // 控制舵机1
+  // PWM6_SetDutyPercent(6, 5);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -141,12 +142,11 @@ Motor_SetPWM(5, 10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-    
+    Fire_ControlLoop();
 
     // 更新SPI1遥控器4通道
     SPI_Slave_TryGet4U8(&spi1_ctx, &d0, &d1, &d2, &d3);
-    
+
     // 更新开关量 d4, d5
     d4 = ICX_GetDuty(&ic3);
     d5 = ICX_GetDuty(&ic4);
@@ -154,7 +154,7 @@ Motor_SetPWM(5, 10);
     // 运行你的底盘控制逻辑
     Chassis_ControlLoop();
     // 运行云台控制逻辑
-    // Gimbal_ControlLoop();
+    Gimbal_ControlLoop();
 
     //  OLED 调试显示  !!!OLED显示频繁会影响控制周期，若调试出现问题请注释掉!!!
     

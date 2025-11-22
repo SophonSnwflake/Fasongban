@@ -26,7 +26,7 @@ void RC_Update(void)
 
     // 2) 云台 pitch 速度（以后 gimbal 用）
     rc.pitch_speed = rc_norm(d2, 85, 169) * GIMBAL_PITCH_SPEED_MAX;
-    OLED_ShowSignedNum(1, 49, (int)rc.pitch_speed, 4, OLED_6X8);
+    OLED_ShowSignedNum(1, 49, d5, 4, OLED_6X8);
 
     // 3) 模式切换：d4 是二挡开关
     //    d4 小 ≈ 一档，d4 大 ≈ 二档（具体数值 85 / 169）
@@ -34,4 +34,9 @@ void RC_Update(void)
         rc.mode = 1; // 打靶模式
     else
         rc.mode = 0; // 行进模式
+    //rc.fire_switch = (d5 > 120) ? 1 : 0;
+    if (d5 == 1)
+        rc.fire_switch = 1;
+    else if (d5 == 85)
+        rc.fire_switch = 0;
 }
