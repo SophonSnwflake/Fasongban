@@ -3,25 +3,28 @@
 #include "main.h"
 #include "rc_process.h"
 
-// 发射 GPIO：PA2 （高电平触发）
+// 发射 GPIO：PA2
 #define FIRE_GPIO_PORT GPIOA
 #define FIRE_GPIO_PIN GPIO_PIN_2
 
-// 10 发/秒 → 最快间隔 = 100ms
-#define FIRE_INTERVAL_MS 50
+// 单发脉冲长度
+#define FIRE_PULSE_MS 20
 
-// 保存上一次开关状态
-static uint8_t last_switch = 0;
+// d5 值
+#define FIRE_MODE_LOW 85
+#define FIRE_MODE_MID 127
+#define FIRE_MODE_AUTO 1
 
-// 上次发射时间戳
-static uint32_t last_fire_tick = 0;
+static uint8_t last_d5 = FIRE_MODE_LOW;
 
-// 短脉冲时间（发射触发高电平维持 15ms）
-#define FIRE_PULSE_MS 50
+// 单发脉冲结束时间戳
 static uint32_t fire_pulse_end_tick = 0;
 
+// 连发模式标志（d5=1 时）
+static uint8_t auto_fire = 0;
+
 /**
- * @brief 初始化发射 GPIO（PA2 输出）
+ * @brief 初始化 PA2
  */
 void Fire_Init(void)
 {
@@ -40,56 +43,64 @@ void Fire_Init(void)
 }
 
 /**
- * @brief 触发一次发射（内部使用）
+ * @brief 打单发（高电平维持 20ms）
  */
-static void Fire_Trigger(void)
+static void Fire_SingleShot(void)
 {
     uint32_t now = HAL_GetTick();
 
-    // 功率节流：100ms 内只能打一发
-    if (now - last_fire_tick < FIRE_INTERVAL_MS)
-        return;
-
-    last_fire_tick = now;
-
-    // 输出高电平 → 发射
     HAL_GPIO_WritePin(FIRE_GPIO_PORT, FIRE_GPIO_PIN, GPIO_PIN_SET);
-
-    // 记录脉冲结束时间
     fire_pulse_end_tick = now + FIRE_PULSE_MS;
 }
 
 /**
- * @brief 主控制循环（每帧 200Hz 调用）
+ * @brief 每帧调用（200Hz）
  */
 void Fire_ControlLoop(void)
 {
     uint32_t now = HAL_GetTick();
+    uint8_t d5 = rc.fire_switch; // 实际为 1 / 85 / 127
 
-    // 1) 若处于发射高电平时间，检查是否该恢复低电平
-    if (fire_pulse_end_tick != 0)
+    /************************************************************
+     * ① 如果连发模式（d5 == 1）
+     *    → 直接让 PA2 一直高电平
+     ************************************************************/
+    if (d5 == FIRE_MODE_AUTO)
     {
-        if (now >= fire_pulse_end_tick)
-        {
-            HAL_GPIO_WritePin(FIRE_GPIO_PORT, FIRE_GPIO_PIN, GPIO_PIN_RESET);
-            fire_pulse_end_tick = 0;
-        }
+        auto_fire = 1;
+        HAL_GPIO_WritePin(FIRE_GPIO_PORT, FIRE_GPIO_PIN, GPIO_PIN_SET);
+
+        last_d5 = d5;
+        return;
     }
 
-    // 2) 检测 d5（rc.fire_switch）的边沿
-    uint8_t cur = rc.fire_switch;
-
-    // 上升沿：0 → 1
-    if (last_switch == 0 && cur == 1)
+    /************************************************************
+     * ② 离开连发模式（d5 != 1）
+     *    → 必须关闭高电平
+     ************************************************************/
+    if (auto_fire && d5 != FIRE_MODE_AUTO)
     {
-        Fire_Trigger();
+        auto_fire = 0;
+        HAL_GPIO_WritePin(FIRE_GPIO_PORT, FIRE_GPIO_PIN, GPIO_PIN_RESET);
     }
 
-    // 下降沿：1 → 0
-    if (last_switch == 1 && cur == 0)
+    /************************************************************
+     * ③ 单发模式：85 ↔ 127 切换时打一发
+     ************************************************************/
+    if ((last_d5 == FIRE_MODE_LOW && d5 == FIRE_MODE_MID) ||
+        (last_d5 == FIRE_MODE_MID && d5 == FIRE_MODE_LOW))
     {
-        Fire_Trigger();
+        Fire_SingleShot();
     }
 
-    last_switch = cur;
+    last_d5 = d5;
+
+    /************************************************************
+     * ④ 单发脉冲结束计时
+     ************************************************************/
+    if (fire_pulse_end_tick && now >= fire_pulse_end_tick)
+    {
+        HAL_GPIO_WritePin(FIRE_GPIO_PORT, FIRE_GPIO_PIN, GPIO_PIN_RESET);
+        fire_pulse_end_tick = 0;
+    }
 }

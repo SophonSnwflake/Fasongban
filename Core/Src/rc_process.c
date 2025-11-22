@@ -35,8 +35,9 @@ void RC_Update(void)
     else
         rc.mode = 0; // 行进模式
     //rc.fire_switch = (d5 > 120) ? 1 : 0;
-    if (d5 == 1)
-        rc.fire_switch = 1;
-    else if (d5 == 85)
-        rc.fire_switch = 0;
+    // if (d5 == 1)
+    //     rc.fire_switch = 1;
+    // else if (d5 == 85)
+    //     rc.fire_switch = 0;
+    rc.fire_switch = d5; // 直接传递 d5 的值给开火开关
 }

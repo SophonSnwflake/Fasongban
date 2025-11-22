@@ -36,10 +36,16 @@ void Calc_Mecanum(float vx, float vy, float omega, float wheel_out[4])
     float R = CHASSIS_ROTATE_R;
 
     // 麦轮运动学（标准四麦轮公式）
-    wheel_out[0] = (vx - vy - omega_rad * R)/8; // FL 左前
-    wheel_out[1] = (vx + vy + omega_rad * R) / 8; // BL 左后
-    wheel_out[2] = (vx - vy - omega_rad * R) / 8; // BR 右后
-    wheel_out[3] = (vx + vy + omega_rad * R) / 8; // FR 右前
+    // wheel_out[0] = -(vx - vy - omega_rad * R)/8; // FL 左前
+    // wheel_out[1] = (vx + vy + omega_rad * R) / 8; // BL 左后
+    // wheel_out[2] = (vx - vy - omega_rad * R) / 8; // BR 右后
+    // wheel_out[3] = (vx + vy + omega_rad * R) / 8; // FR 右前
+
+
+    wheel_out[0] = -(vx + vy + omega_rad * R)/8; // FL 左前
+    wheel_out[1] = (vx - vy + omega_rad * R) / 8; // BL 左后
+    wheel_out[2] = (vx + vy - omega_rad * R) / 8; // BR 右后
+    wheel_out[3] = (vx - vy - omega_rad * R) / 8; // FR 右前
 }
 
 // -------------------- 四个轮子的 PID 控制器 --------------------
