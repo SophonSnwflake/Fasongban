@@ -39,6 +39,24 @@ PWM6_SetDutyPercent(6, 5.8);//控制舵机2
 
 
 
-//获取遥控器的值
+
+/*
+   测试编码器数据转换为轮速的函数
+*/
+uint8_t testForEncoderData0, testForEncoderData1, testForEncoderData2, testForEncoderData3;
+float testForWheelSpeed0, testForWheelSpeed1, testForWheelSpeed2, testForWheelSpeed3;
+SPI_Slave_TryGet4U8(&spi2_ctx, &testForEncoderData0, &testForEncoderData1, &testForEncoderData2, &testForEncoderData3);
+
+testForWheelSpeed0 = caculateWheelSpeed(WHEEL_RADIUS_MM, testForEncoderData0, ENCODER_MUTIPLE);
+testForWheelSpeed1 = caculateWheelSpeed(WHEEL_RADIUS_MM, testForEncoderData1, ENCODER_MUTIPLE);
+testForWheelSpeed2 = caculateWheelSpeed(WHEEL_RADIUS_MM, testForEncoderData2, ENCODER_MUTIPLE);
+testForWheelSpeed3 = caculateWheelSpeed(WHEEL_RADIUS_MM, testForEncoderData3, ENCODER_MUTIPLE);
 
 
+/*
+    测试遥控器数据读取并转换为速度的函数
+*/
+
+RC_Update();
+float vx = rc.vx;
+float vy = rc.vy;

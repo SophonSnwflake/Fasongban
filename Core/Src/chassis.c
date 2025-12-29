@@ -5,12 +5,13 @@
 #include "spi_slave.h"
 #include "motor.h"
 #include "rc_process.h"
+#include "OLED.h"
 
 extern SPI_SlaveCtx spi2_ctx;
 
 // 全局缓存数组
-static float wheel_target[4];
-static float wheel_speed[4];
+float wheel_target[4];
+float wheel_speed[4];
 
 /**
  * @brief 麦克纳姆轮运动学计算（将底盘速度转换为四轮速度）
@@ -35,10 +36,16 @@ void Calc_Mecanum(float vx, float vy, float omega, float wheel_out[4])
     float R = CHASSIS_ROTATE_R;
 
     // 麦轮运动学（标准四麦轮公式）
-    wheel_out[0] = vx - vy - omega_rad * R; // FL 左前
-    wheel_out[1] = vx + vy - omega_rad * R; // BL 左后
-    wheel_out[2] = vx - vy + omega_rad * R; // BR 右后
-    wheel_out[3] = vx + vy + omega_rad * R; // FR 右前
+    // wheel_out[0] = -(vx - vy - omega_rad * R)/8; // FL 左前
+    // wheel_out[1] = (vx + vy + omega_rad * R) / 8; // BL 左后
+    // wheel_out[2] = (vx - vy - omega_rad * R) / 8; // BR 右后
+    // wheel_out[3] = (vx + vy + omega_rad * R) / 8; // FR 右前
+
+
+    wheel_out[0] = -(vx + vy + omega_rad * R)/8; // FL 左前
+    wheel_out[1] = (vx - vy + omega_rad * R) / 8; // BL 左后
+    wheel_out[2] = (vx + vy - omega_rad * R) / 8; // BR 右后
+    wheel_out[3] = (vx - vy - omega_rad * R) / 8; // FR 右前
 }
 
 // -------------------- 四个轮子的 PID 控制器 --------------------
@@ -82,15 +89,43 @@ void Update_4Wheel_PID(float target[4], float measure[4])
 
         // 限幅（双保险）
         if (pwm > MOTOR_PWM_MAX)
+
             pwm = MOTOR_PWM_MAX;
         if (pwm < -MOTOR_PWM_MAX)
             pwm = -MOTOR_PWM_MAX;
 
         pwm_out = (int)pwm;
 
+        
+
         // 映射到实际的 motor id（1~4）
         Motor_SetPWM(i + 1, pwm_out);
+        if (i == 0)
+        {
+            /* code */
+            OLED_ShowSignedNum(1, 9, pwm_out, 4, OLED_6X8);
+        }
+        else if (i == 1)
+        {
+            OLED_ShowSignedNum(1, 17, pwm_out, 4, OLED_6X8);
+        }
+        else if (i == 2)
+        {
+            OLED_ShowSignedNum(1, 25, pwm_out, 4, OLED_6X8);
+        }
+        else if (i == 3)
+        {
+            OLED_ShowSignedNum(1, 33, pwm_out, 4, OLED_6X8);
+        }
+        
+        OLED_ShowString(1, 1, "PID:", OLED_6X8);
+        
+        
+        
+        
+        OLED_Update();
     }
+        
 }
 
 /**
@@ -114,6 +149,13 @@ uint8_t GetWheelSpeed_FromSPI(SPI_SlaveCtx *ctx, float speed_out[4])
     speed_out[2] = caculateWheelSpeed(WHEEL_RADIUS_MM, k2, ENCODER_MUTIPLE); // BR
     speed_out[3] = caculateWheelSpeed(WHEEL_RADIUS_MM, k3, ENCODER_MUTIPLE); // FR
 
+    // OLED_ShowString(35, 1, "Spe:", OLED_6X8);
+    // OLED_ShowSignedNum(35, 9, wheel_speed[0], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 17, wheel_speed[1], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 25, wheel_speed[2], 4, OLED_6X8);
+    // OLED_ShowSignedNum(35, 33, wheel_speed[3], 4, OLED_6X8);
+    // OLED_Update();
+
     return 1;
 }
 
@@ -129,11 +171,23 @@ void Chassis_Control_Move(void)
     // 1) 运动学求目标轮速
     Calc_Mecanum(vx, vy, omega, wheel_target);
 
+    
+
     // 2) 读取当前轮速（mm/s）
     GetWheelSpeed_FromSPI(&spi2_ctx, wheel_speed);
 
     // 3) 四轮 PID 控制
     Update_4Wheel_PID(wheel_target, wheel_speed);
+
+    OLED_ShowSignedNum(70, 9, (int)wheel_target[0], 4, OLED_6X8);
+    OLED_ShowSignedNum(70, 17, (int)wheel_target[1], 4, OLED_6X8);
+    OLED_ShowSignedNum(70, 25, (int)wheel_target[2], 4, OLED_6X8);
+    OLED_ShowSignedNum(70, 33, (int)wheel_target[3], 4, OLED_6X8);
+
+    // OLED_ShowSignedNum(70, 25, vx, 3, OLED_6X8);
+    // OLED_ShowSignedNum(70, 33, vy, 3, OLED_6X8);
+    OLED_Update();
+
 }
 
 /**
@@ -147,6 +201,7 @@ void Chassis_Control_Fire(void)
 
     Calc_Mecanum(vx, vy, omega, wheel_target);
     GetWheelSpeed_FromSPI(&spi2_ctx, wheel_speed);
+    // wheel_speed[3] = wheel_speed[3]/80000009000000000;
     Update_4Wheel_PID(wheel_target, wheel_speed);
 }
 
